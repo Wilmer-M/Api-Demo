@@ -59,7 +59,7 @@ app.post('/login', (req, res) => {
 NO TOKEN REQUIRED
 */
 
-app.get('/admin/users', (req, res) => {
+app.get('/admin/users', auth, (req, res) => {
 
     db.query('SELECT * FROM users', (err, result) => {
 
@@ -75,16 +75,29 @@ app.get('/admin/users', (req, res) => {
 USER CAN ACCESS OTHER USERS
 */
 
-app.get('/users/:id', (req, res) => {
+app.get('/users/:id', auth, (req, res) => {
 
-    const id = req.params.id;
+    const requestedId = parseInt(req.params.id);
+
+    if(req.user.id !== requestedId){
+
+        return res.status(403).json({
+            error: 'Forbidden'
+        });
+    }
 
     db.query(
         'SELECT * FROM users WHERE id = ?',
-        [id],
+        [requestedId],
         (err, result) => {
 
-            res.json(result[0]);
+            const user = result[0];
+
+            res.json({
+                id: user.id,
+                username: user.username,
+                email: user.email
+            });
         }
     );
 });
