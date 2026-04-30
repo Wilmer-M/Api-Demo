@@ -12,6 +12,8 @@ app.use(bodyParser.json());
 
 const SECRET = "supersecret";
 
+const auth = require('./middleware/auth');
+
 
 /*
 ========================
@@ -61,8 +63,13 @@ NO TOKEN REQUIRED
 
 app.get('/admin/users', auth, (req, res) => {
 
-    db.query('SELECT * FROM users', (err, result) => {
+    if(req.user.role !== 'admin'){
+        return res.status(403).json({
+            error: 'Access denied: Admins only'
+        });
+    }
 
+    db.query('SELECT * FROM users', (err, result) => {
         res.json(result);
     });
 });
